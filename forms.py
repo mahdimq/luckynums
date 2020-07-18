@@ -1,27 +1,15 @@
 from flask_wtf import FlaskForm
-from wtforms import StringField, SelectField
-from wtforms.validators import InputRequired, Email, Regexp
+from wtforms import StringField,IntegerField
+from wtforms.validators import DataRequired, Email, NumberRange, AnyOf
 
 
-class InfoForm(FlaskForm):
-    name = StringField("Username", validators=[InputRequired()])
+class UserInput(FlaskForm):
+    """Create Input form for validation"""
+    name = StringField("Name", validators=[DataRequired()])
     email = StringField(
-        "Email", validators=[InputRequired(), Email(message="Invalid Email")]
-    )
-    year = StringField(
-        "Year of Birth",
-        validators=[
-            InputRequired(),
-            Regexp(r"^(19[0-9]{2}|2[0]{3})$", message="Invalid input"),
-        ],
-    )
-    color = SelectField(
-        "Favorite Color",
-        choices=[
-            ("red", "red"),
-            ("green", "green"),
-            ("orange", "orange"),
-            ("blue", "blue"),
-        ],
-        validators=[InputRequired()],
-    )
+        "Email", validators=[DataRequired(), Email(message="Invalid Email")])
+    color = StringField("Colors", validators=[DataRequired(), AnyOf(["red", "green", "orange", "blue"])])
+    # color = SelectField("Color", choices=[
+    #                       ("red", "Red"), ("green", "Green"), ("orange", "Orange"), ("blue", "Blue")])
+    year = IntegerField("Year", validators=[DataRequired(), NumberRange(
+        min=1900, max=2000, message="- Year has to be between 1900 and 20-0")])

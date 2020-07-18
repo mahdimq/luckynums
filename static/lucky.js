@@ -8,15 +8,15 @@ const $color = $('#color')
 async function processForm(evt) {
 	evt.preventDefault() //<-- prevents form from reloading page
 
+	// Create Data object with form input values
+	let data = {
+		name: $name.val(),
+		email: $email.val(),
+		year: $year.val(),
+		color: $color.val(),
+	}
 	// get response from form and save as data object to use in the flask view route
-	let apiResp = await axios.post('/api/get-lucky-num', {
-		data: {
-			name: $name.val(),
-			email: $email.val(),
-			year: $year.val(),
-			color: $color.val(),
-		},
-	})
+	let apiResp = await axios.post('/api/get-lucky-num', data)
 
 	$('#lucky-form').find('input:text').val('') //<-- reset input values after submit
 	handleResponse(apiResp) //<-- pass the data into handleResponse
@@ -26,7 +26,16 @@ async function processForm(evt) {
 
 function handleResponse(resp) {
 	const data = resp.data //<-- save response data as variable
-	console.log('DATA:', data)
+	// console.log('DATA:', data)
+
+	if (data.errors) {
+		// console.log(data.errors)
+		for (let err in data.errors) {
+			// console.log(`${data.errors[err]}`)
+			$(`#${err}-err`).append(data.errors[err]) //<-- add to DOM
+		}
+		return
+	}
 
 	// Populate the HTML div with results from API and form data
 	$luckyResultDiv = $('#lucky-results')

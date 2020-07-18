@@ -1,9 +1,7 @@
 from flask import Flask, render_template, request, jsonify
 import requests
-
-# from forms import InfoForm
-# from werkzeug.datastructures import MultiDict
-
+from forms import UserInput
+from werkzeug.datastructures import MultiDict
 
 app = Flask(__name__)
 
@@ -20,38 +18,34 @@ def homepage():
 @app.route("/api/get-lucky-num", methods=["POST"])
 def get_num():
     """get lucky num api"""
-    data = request.get_json()
+    req = request.json  #<-- Get request from user input
 
-    # form = InfoForm(MultiDict(mapping=req["data"]), csrf_enabled=False)
-
+    #
+    form = UserInput(MultiDict(mapping=req), csrf_enabled=False)
     from random import randint
     rand_num = randint(0, 100)
 
+    if form.validate_on_submit(): #<-- validate form
 
-    # if req.values() == None:
-    #     errors = {
-    #         "errors": {
-    #             "color": ["Invalid value, must be one of: red, green, orange, blue."],
-    #             "name": ["This field is required."],
-    #         }
-    #     }
-    #     return jsonify(errors)
+        response = {
+            "num": {
+                "fact": requests.get(f"{BASE_URL}{rand_num}/trivia").text,
+                "num": rand_num,
+            },
+            "year": {
+                "fact": requests.get(f"{BASE_URL}{req['year']}/year").text,
+                "year": req["year"],
+            },
+        }
+        # print(dir(requests.get(BASE_URL))) -> to check what methods are returned
+        # print("RESPONSE: ", response) -> verify if response is correct
+        return jsonify(response)
 
-    # else:
-
-    response = {
-        "num": {
-            "fact": requests.get(f"{BASE_URL}{rand_num}/trivia").text,
-            "num": rand_num,
-        },
-        "year": {
-            "fact": requests.get(f"{BASE_URL}{req['data']['year']}/year").text,
-            "year": req["data"]["year"],
-        },
-    }
-    # print(dir(requests.get(BASE_URL))) -> to check what methods are returned
-    # print("RESPONSE: ", response) -> verify if response is correct
-    return jsonify(response)
+    else:
+        error = {"errors": {}} #<-- create json data for errors
+        for err in form.errors: #<-- loop through errors dict
+            error['errors'][err] = eval(f'form.{err}.errors') #<-- populate errors to dict
+            return jsonify(error) #<-- jasonify dict to use in JavaScript
 
 
 # REQUEST:  {'data': {'name': 'Bubba', 'email': 'jon@jon.com', 'year': '1998', 'color': 'blue'}}
